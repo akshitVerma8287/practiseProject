@@ -1,0 +1,139 @@
+basePath: /
+definitions:
+  dto.UpdateStudentRequest:
+    properties:
+      age:
+        type: integer
+      email:
+        type: string
+      name:
+        type: string
+    type: object
+  models.Student:
+    properties:
+      age:
+        type: integer
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a student CRUD API server.
+  title: Student CRUD API
+  version: "1.0"
+paths:
+  /api/student/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new student
+      parameters:
+      - description: Student Data
+        in: body
+        name: student
+        required: true
+        schema:
+          $ref: '#/definitions/models.Student'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Student'
+      summary: Create student
+      tags:
+      - Students
+  /api/student/delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete student by ID
+      parameters:
+      - description: Student ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete student
+      tags:
+      - Students
+  /api/student/getAll:
+    get:
+      consumes:
+      - application/json
+      description: Fetch all students
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Student'
+            type: array
+      summary: Get all students
+      tags:
+      - Students
+  /api/student/getById/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Fetch student using ID
+      parameters:
+      - description: Student ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Student'
+      summary: Get student by ID
+      tags:
+      - Students
+  /api/student/update/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update student by ID
+      parameters:
+      - description: Student ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated Student
+        in: body
+        name: student
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateStudentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Student'
+      summary: Update student
+      tags:
+      - Students
+swagger: "2.0"

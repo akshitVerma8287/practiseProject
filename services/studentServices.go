@@ -7,28 +7,37 @@ import (
 	"project/repositories"
 )
 
-func FetchStudents() ([]models.Student, error) {
+type StudentService struct {
+}
 
+func InitStudentService() StudentService {
+	return StudentService{}
+}
+
+func (s StudentService) GetAllStudents() ([]models.Student, error) {
 	return repositories.GetAllStudents()
 }
 
-func GetStudentById(id uint) (models.Student, error) {
-	return repositories.GetStudentById(id)
+func (s StudentService) GetStudentById(id uint) (models.Student, error) {
+	
+	return repositories.GetStudentById(id)			// here this 's studentService is called method receiver'
 }
 
-func AddStudent(student models.Student) (models.Student, error) {
+func (s StudentService) CreateStudent(student models.Student) (models.Student, error) {
+
 	if student.Age <= 16 {
-		return models.Student{}, errors.New("Age should be greater than 16")
+		return models.Student{}, errors.New("age should be greater than 16")
 	}
 
 	return repositories.AddStudent(student)
 }
 
-func UpdateStudent(id uint, req dto.UpdateStudentRequest) (models.Student, error) {
-	student, err := repositories.GetStudentById(id)
+func (s StudentService) UpdateStudent(id uint, req dto.UpdateStudentRequest) (models.Student, error) {
+
+	student, err := repositories.GetStudentById(id)	
 
 	if err != nil {
-		return models.Student{}, errors.New("Student not found")
+		return models.Student{}, errors.New("student not found")
 	}
 
 	if req.Name != nil {
@@ -46,11 +55,12 @@ func UpdateStudent(id uint, req dto.UpdateStudentRequest) (models.Student, error
 	return repositories.UpdateStudent(student)
 }
 
-func DeleteStudent(id uint) error {
+func (s StudentService) DeleteStudent(id uint) error {
+
 	_, err := repositories.GetStudentById(id)
 
 	if err != nil {
-		return errors.New("Student not found")
+		return errors.New("student not found")
 	}
 
 	return repositories.DeleteStudent(id)

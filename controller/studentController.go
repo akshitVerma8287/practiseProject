@@ -6,14 +6,27 @@ import (
 
 	"project/dto"
 	"project/models"
-	"project/services"
 
 	"github.com/gin-gonic/gin"
 )
 
-func GetStudents(c *gin.Context) {
+var studentProvider models.StudentProvider
 
-	students, err := services.FetchStudents()
+func InitStudentProvider(provider models.StudentProvider) {
+	studentProvider = provider
+} 
+
+// GetAllStudents godoc
+// @Summary Get all students
+// @Description Fetch all students 	
+// @Tags Students
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Student
+// @Router /api/student/getAll [get]
+func GetAllStudents(c *gin.Context) {
+
+	students, err := studentProvider.GetAllStudents()
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -25,64 +38,93 @@ func GetStudents(c *gin.Context) {
 	c.JSON(http.StatusOK, students)
 }
 
-func GetStudentById(c *gin.Context){
+// GetStudentByID godoc
+// @Summary Get student by ID
+// @Description Fetch student using ID
+// @Tags Students
+// @Accept json
+// @Produce json
+// @Param id path int true "Student ID"
+// @Success 200 {object} models.Student
+// @Router /api/student/getById/{id} [get]
+func GetStudentByID(c *gin.Context) {
+
 	idParam := c.Param("id")
 
 	id, err := strconv.Atoi(idParam)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest,gin.H{
-			"msg":"Invalid student id",
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "invalid student id",
 		})
 		return
 	}
 
-	student, err := services.GetStudentById(uint(id))
+	student, err := studentProvider.GetStudentById(uint(id))
 
 	if err != nil {
-		c.JSON(http.StatusNotFound,gin.H{
-			"Error":"Student not found",
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "student not found",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK,student)
-
+	c.JSON(http.StatusOK, student)
 }
 
-func AddStudent(c *gin.Context){
+// CreateStudent godoc
+// @Summary Create student
+// @Description Create a new student
+// @Tags Students
+// @Accept json
+// @Produce json
+// @Param student body models.Student true "Student Data"
+// @Success 201 {object} models.Student
+// @Router /api/student/create [post]
+func CreateStudent(c *gin.Context) {
+
 	var student models.Student
 
 	err := c.ShouldBindJSON(&student)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest,gin.H{
-			"Err_Msg":err.Error(),
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
 		})
 		return
 	}
 
-	newStudent, err := services.AddStudent(student)
+	newStudent, err := studentProvider.CreateStudent(student)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"errro": err.Error(),
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated,newStudent)
+	c.JSON(http.StatusCreated, newStudent)
 }
 
-func UpdateStudent(c *gin.Context){
+// UpdateStudent godoc
+// @Summary Update student
+// @Description Update student by ID
+// @Tags Students
+// @Accept json
+// @Produce json
+// @Param id path int true "Student ID"
+// @Param student body dto.UpdateStudentRequest true "Updated Student"
+// @Success 200 {object} models.Student
+// @Router /api/student/update/{id} [put]
+func UpdateStudent(c *gin.Context) {
 
 	idParam := c.Param("id")
-	
+
 	id, err := strconv.Atoi(idParam)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest,gin.H{
-			"Error":err.Error(),
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "invalid id",
 		})
 		return
 	}
@@ -92,47 +134,56 @@ func UpdateStudent(c *gin.Context){
 	err = c.ShouldBindJSON(&req)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError,gin.H{
-			"Error":err.Error(),
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
 		})
 		return
 	}
 
-	updateStudent, err := services.UpdateStudent(uint(id),req)
+	updatedStudent, err := studentProvider.UpdateStudent(uint(id), req)
 
 	if err != nil {
-		c.JSON(http.StatusNotFound,gin.H{
-			"Error": err.Error(),
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK,&updateStudent)
-
+	c.JSON(http.StatusOK, updatedStudent)
 }
 
-func DeleteStudent(c *gin.Context){
+// DeleteStudent godoc
+// @Summary Delete student
+// @Description Delete student by ID
+// @Tags Students
+// @Accept json
+// @Produce json
+// @Param id path int true "Student ID"
+// @Success 200 {object} map[string]interface{}
+// @Router /api/student/delete/{id} [delete]
+func DeleteStudent(c *gin.Context) {
+
 	idParam := c.Param("id")
 
 	id, err := strconv.Atoi(idParam)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest,gin.H{
-			"Error": "Invalid student id",
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "invalid student id",
 		})
 		return
 	}
 
-	err = services.DeleteStudent(uint(id))
+	err = studentProvider.DeleteStudent(uint(id))
 
 	if err != nil {
-		c.JSON(http.StatusNotFound,gin.H{
-			"Error": err.Error(),
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK,gin.H{
-		"Message":"Student Deleted Successfully",
+	c.JSON(http.StatusOK, gin.H{
+		"message": "student deleted successfully",
 	})
 }

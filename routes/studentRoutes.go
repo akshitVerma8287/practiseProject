@@ -8,13 +8,15 @@ import (
 
 func SetupRoutes(router *gin.Engine) {
 
-	router.GET("/students", controller.GetStudents)
+	studentGrp := router.Group("/api/student")
 
-	router.GET("/student/:id",controller.GetStudentById)
+	{	
 
-	router.POST("/add-student",controller.AddStudent)
+		studentGrp.GET("/getAll", controller.GetAllStudents)
+		studentGrp.GET("/getById/:id", controller.GetStudentByID)
+		studentGrp.POST("/create", controller.CreateStudent)
+		studentGrp.PUT("/update/:id", controller.UpdateStudent)
+		studentGrp.DELETE("/delete/:id", controller.DeleteStudent)
 
-	router.PUT("/student-update/:id",controller.UpdateStudent)
-
-	router.DELETE("/delete-student/:id",controller.DeleteStudent)
+	}
 }
