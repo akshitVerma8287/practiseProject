@@ -6,6 +6,8 @@ import (
 	"project/models"
 	"project/routes"
 	"project/services"
+	"github.com/joho/godotenv"
+	"log"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -27,13 +29,18 @@ func BuildStudentProvider() models.StudentProvider {
 
 func main() {
 
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	router := gin.Default()
 
 	config.ConnectPostgres()
 	config.ConnectMongo()
 	config.ConnectRedis()
 
-	config.DB.AutoMigrate(&models.Student{})
+	config.DB.AutoMigrate(&models.Student{}, &models.Admin{})
 
 	// Build Provider
 	studentProvider := BuildStudentProvider()

@@ -2,13 +2,28 @@ package routes
 
 import (
 	"project/controller"
-
+	"project/handlers"
+	"project/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRoutes(router *gin.Engine) {
 
+	
+	admin := router.Group("/admin")
+	{
+		admin.POST("/create", handlers.CreateAdmin)
+		admin.POST("/login", handlers.AdminLogin)
+		
+		adminProtected := admin.Group("/")
+		adminProtected.Use(middleware.AuthMiddleware())
+		{
+			adminProtected.POST("/logout", handlers.AdminLogout)
+		}
+	}
+
 	studentGrp := router.Group("/api/student")
+	studentGrp.Use(middleware.AuthMiddleware())
 
 	{	
 
@@ -19,4 +34,5 @@ func SetupRoutes(router *gin.Engine) {
 		studentGrp.DELETE("/delete/:id", controller.DeleteStudent)
 
 	}
+
 }
