@@ -6,3 +6,9 @@ type Student struct {
 	Age int `json:"age" gorm:"Age"`
 	Email string `json:"email" gorm:"Email"`
 }
+
+type Admin struct {
+	ID       int    `json:"id"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
