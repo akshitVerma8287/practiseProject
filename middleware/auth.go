@@ -116,6 +116,8 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		c.Set("email", email)
+
 		// FETCH TOKEN FROM REDIS
 		storedToken, err := config.RedisClient.Get(
 			context.Background(),
