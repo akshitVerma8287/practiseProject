@@ -2,7 +2,7 @@ package routes
 
 import (
 	"project/controller"
-	"project/handlers"
+	//"project/handlers"
 	"project/middleware"
 	"github.com/gin-gonic/gin"
 )
@@ -12,13 +12,13 @@ func SetupRoutes(router *gin.Engine) {
 	
 	admin := router.Group("/admin")
 	{
-		admin.POST("/create", handlers.CreateAdmin)
-		admin.POST("/login", handlers.AdminLogin)
+		admin.POST("/create", controller.CreateAdmin)
+		admin.POST("/login", controller.AdminLogin)
 		
 		adminProtected := admin.Group("/")
 		adminProtected.Use(middleware.AuthMiddleware())
 		{
-			adminProtected.POST("/logout", handlers.AdminLogout)
+			adminProtected.POST("/logout", controller.AdminLogout)
 		}
 	}
 
