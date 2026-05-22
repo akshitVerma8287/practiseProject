@@ -2,9 +2,8 @@ package services
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"log"
+	"net/http"
 	"project/config"
 	"project/models"
 	"project/repositories"
@@ -14,20 +13,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func CreateAdmin(input models.Admin) (models.Admin, error) {
+func CreateAdmin(input models.Admin) (models.Admin, int) {
 
 	// CHECK IF ADMIN ALREADY EXISTS
 	adminExists, err := repositories.AdminAlreadyExists(input.Email)
 
 	if err != nil {
-		return models.Admin{}, err
+		return models.Admin{}, http.StatusInternalServerError
 	}
 
 	if adminExists {
-		return models.Admin{}, fmt.Errorf(
-			"admin with email %s already exists",
-			input.Email,
-		)
+		return models.Admin{}, http.StatusConflict
 	}
 
 	// HASH PASSWORD
@@ -40,7 +36,7 @@ func CreateAdmin(input models.Admin) (models.Admin, error) {
 
 		log.Println("Password hashing failed:", err.Error())
 
-		return models.Admin{}, err
+		return models.Admin{}, http.StatusInternalServerError
 	}
 
 	// REPLACE PLAIN PASSWORD WITH HASH
@@ -53,13 +49,13 @@ func CreateAdmin(input models.Admin) (models.Admin, error) {
 
 		log.Println("Failed to create admin:", err.Error())
 
-		return models.Admin{}, err
+		return models.Admin{}, http.StatusInternalServerError
 	}
 
-	return createdAdmin, nil
+	return createdAdmin, http.StatusCreated
 }
 
-func AdminLoginService(input models.Admin) (string, error) {
+func AdminLoginService(input models.Admin) (string, int) {
 
 	admin, err := repositories.FindAdminByEmail(input.Email)
 
@@ -67,7 +63,7 @@ func AdminLoginService(input models.Admin) (string, error) {
 
 		log.Println("Admin not found:", err.Error())
 
-		return "", errors.New("invalid email")
+		return "", http.StatusNotFound
 	}
 
 	err = bcrypt.CompareHashAndPassword(
@@ -79,7 +75,7 @@ func AdminLoginService(input models.Admin) (string, error) {
 
 		log.Println("Password mismatch")
 
-		return "", errors.New("invalid email password")
+		return "", http.StatusUnauthorized
 	}
 
 	token, err := utils.GenerateJWT(admin.Email)
@@ -88,7 +84,7 @@ func AdminLoginService(input models.Admin) (string, error) {
 
 		log.Println("Token generation failed:", err.Error())
 
-		return "", errors.New("token generation failed")
+		return "", http.StatusInternalServerError
 	}
 
 	err = config.RedisClient.Set(
@@ -102,13 +98,13 @@ func AdminLoginService(input models.Admin) (string, error) {
 
 		log.Println("Failed to store token in Redis:", err.Error())
 
-		return "", errors.New("failed to store token in redis")
+		return "", http.StatusInternalServerError
 	}
 
-	return token, nil
+	return token, http.StatusOK
 }
 
-func AdminLogoutService(email string) error {
+func AdminLogoutService(email string) int {
 
 	err := repositories.DeleteTokenFromRedis(email)
 
@@ -116,8 +112,8 @@ func AdminLogoutService(email string) error {
 
 		log.Println("Failed to delete token:", err.Error())
 
-		return errors.New("logout failed")
+		return http.StatusInternalServerError
 	}
 
-	return nil
+	return http.StatusOK
 }

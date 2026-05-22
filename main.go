@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	cronjobs "project/chronjobs"
 	"project/config"
 	"project/controller"
 	"project/dbops"
@@ -119,6 +120,9 @@ func main() {
 
 	// Inject into controller
 	controller.InitStudentProvider(studentProvider)
+
+	// Chron Jobs
+	cronjobs.StartCronJobs()
 
 	routes.SetupRoutes(router)
 

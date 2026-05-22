@@ -12,10 +12,7 @@ type redisRepository struct {
 	client *redis.Client
 }
 
-func NewRedisRepository(
-	client *redis.Client,
-) RedisRepository {
-
+func NewRedisRepository(client *redis.Client) RedisRepository {
 	return &redisRepository{
 		client: client,
 	}

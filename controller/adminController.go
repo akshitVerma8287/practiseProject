@@ -1,18 +1,11 @@
 package controller
 
 import (
-	// "context"
 	"log"
 	"net/http"
-	// "os"
-	// "project/config"
 	"project/models"
 	"project/services"
-	// "strings"
-
-
 	"github.com/gin-gonic/gin"
-	// "github.com/golang-jwt/jwt/v5"
 )
 
 var admins []models.Admin
@@ -32,11 +25,11 @@ func CreateAdmin(c *gin.Context) {
         return
     }
 	
-	newAdmin, err := services.CreateAdmin(input)
+	newAdmin, statusCode := services.CreateAdmin(input)
 
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+	if statusCode != http.StatusCreated {
+		c.JSON(statusCode, gin.H{
+			"error": "Failed to create admin",
 		})
 		return
 	}
@@ -57,12 +50,12 @@ func AdminLogin(c *gin.Context) {
 		return
 	}
 
-	token, err := services.AdminLoginService(input)
+	token, statusCode := services.AdminLoginService(input)
 
-	if err != nil {
+	if statusCode != http.StatusOK {
 
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": err.Error(),
+		c.JSON(statusCode, gin.H{
+			"error": "Invalid email or password",
 		})
 
 		return
@@ -86,12 +79,12 @@ func AdminLogout(c *gin.Context) {
 		return
 	}
 
-	err := services.AdminLogoutService(email)
+	statusCode := services.AdminLogoutService(email)
 
-	if err != nil {
+	if statusCode != http.StatusOK {
 
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+		c.JSON(statusCode, gin.H{
+			"error": "Failed to logout",
 		})
 
 		return

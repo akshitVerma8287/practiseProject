@@ -3,9 +3,9 @@ package models
 import "project/dto"
 
 type StudentProvider interface {
-	GetAllStudents() ([]Student, error)
-	GetStudentById(id uint) (Student, error)
-	CreateStudent(student Student) (Student, error)
-	UpdateStudent(id uint, req dto.UpdateStudentRequest) (Student, error)
-	DeleteStudent(id uint) error
+	GetAllStudents() ([]Student, int)
+	GetStudentById(id uint) (Student, int)
+	CreateStudent(student Student) (Student, int)
+	UpdateStudent(id uint, req dto.UpdateStudentRequest) (Student, int)
+	DeleteStudent(id uint) int
 }

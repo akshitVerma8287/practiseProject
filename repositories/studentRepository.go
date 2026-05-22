@@ -188,3 +188,45 @@ func DeleteStudent(id uint) error {
 
 	return nil
 }
+
+func GetStudentsAbove18() ([]models.Student, error) {
+
+	query := `
+	SELECT id, name, email, age
+	FROM students
+	WHERE age > 18
+	`
+
+	rows, err := dbops.PostgresRepo.Fetch(query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var students []models.Student
+
+	for rows.Next() {
+
+		var student models.Student
+
+		err := rows.Scan(
+			&student.ID,
+			&student.Name,
+			&student.Email,
+			&student.Age,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		students = append(
+			students,
+			student,
+		)
+	}
+
+	return students, nil
+}

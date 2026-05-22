@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	helper "project/helper"
 	"project/dto"
 	"project/models"
 
@@ -26,16 +27,16 @@ func InitStudentProvider(provider models.StudentProvider) {
 // @Router /api/student/getAll [get]
 func GetAllStudents(c *gin.Context) {
 
-	students, err := studentProvider.GetAllStudents()
+	students, statusCode := studentProvider.GetAllStudents()
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+	if statusCode != http.StatusOK {
+		c.JSON(statusCode, gin.H{
+			"error": "failed to fetch students",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, students)
+	c.JSON(statusCode, students)
 }
 
 // GetStudentByID godoc
@@ -60,16 +61,23 @@ func GetStudentByID(c *gin.Context) {
 		return
 	}
 
-	student, err := studentProvider.GetStudentById(uint(id))
+	student, statusCode := studentProvider.GetStudentById(uint(id))
 
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "student not found",
+	if statusCode != http.StatusOK {
+		if statusCode == http.StatusNotFound {
+			c.JSON(statusCode, gin.H{
+				"error": "student not found",
+			})
+			return
+		}
+		c.JSON(statusCode, gin.H{
+			"error": "failed to fetch student",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, student)
+
+	c.JSON(statusCode, student)
 }
 
 // CreateStudent godoc
@@ -94,16 +102,18 @@ func CreateStudent(c *gin.Context) {
 		return
 	}
 
-	newStudent, err := studentProvider.CreateStudent(student)
+	newStudent, statusCode := studentProvider.CreateStudent(student)
 
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+	if statusCode != http.StatusCreated {
+		if statusCode == http.StatusBadRequest {
+			helper.Error(c, statusCode, "age must be greater than 16", strconv.Itoa(statusCode))
+			return
+		}
+		helper.Error(c, statusCode, "failed to create student", strconv.Itoa(statusCode))
 		return
 	}
 
-	c.JSON(http.StatusCreated, newStudent)
+	c.JSON(statusCode, newStudent)
 }
 
 // UpdateStudent godoc
@@ -140,16 +150,16 @@ func UpdateStudent(c *gin.Context) {
 		return
 	}
 
-	updatedStudent, err := studentProvider.UpdateStudent(uint(id), req)
+	updatedStudent, statusCode := studentProvider.UpdateStudent(uint(id), req)
 
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
+	if statusCode != http.StatusOK {
+		c.JSON(statusCode, gin.H{
+			"error": "failed to update student",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, updatedStudent)
+	c.JSON(statusCode, updatedStudent)
 }
 
 // DeleteStudent godoc
@@ -174,16 +184,16 @@ func DeleteStudent(c *gin.Context) {
 		return
 	}
 
-	err = studentProvider.DeleteStudent(uint(id))
+	statusCode := studentProvider.DeleteStudent(uint(id))
 
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
+	if statusCode != http.StatusOK {
+		c.JSON(statusCode, gin.H{
+			"error": "failed to delete student",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(statusCode, gin.H{
 		"message": "student deleted successfully",
 	})
 }

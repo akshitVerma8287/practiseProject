@@ -194,7 +194,7 @@ func (f *DatabaseConnectorFactory) GetConnector(config DatabaseConfig) (Database
 		return nil, fmt.Errorf("unsupported database type: %s", config.Type)
 	}
 
-	err := connector.Connect()
+	err := connector.Connect()			// This is method connector 
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to %s: %w", config.Type, err)
 	}

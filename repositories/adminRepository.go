@@ -2,56 +2,109 @@ package repositories
 
 import (
 	"context"
-	"log"
+	"errors"
 	"project/config"
+	"project/dbops"
 	"project/models"
-
-	"gorm.io/gorm"
 )
 
 func AdminAlreadyExists(email string) (bool, error) {
 
-	var existingAdmin models.Admin
+	query := `
+	SELECT id
+	FROM admins
+	WHERE email = $1
+	`
 
-	err := config.DB.Where(
-		"email = ?",
+	rows, err := dbops.PostgresRepo.Fetch(
+		query,
 		email,
-	).First(&existingAdmin).Error
+	)
 
-	// ADMIN FOUND
-	if err == nil {
-
-		log.Println("Admin with this email already exists")
-
-		return true, nil
-	}
-
-	// SOME OTHER DATABASE ERROR
-	if err != gorm.ErrRecordNotFound {
-
-		log.Println("Database error:", err.Error())
-
+	if err != nil {
 		return false, err
 	}
 
-	// ADMIN DOES NOT EXIST
+	defer rows.Close()
+
+	if rows.Next() {
+		return true, nil
+	}
+
 	return false, nil
 }
 
-func CreateAdmin(input models.Admin) (models.Admin, error) {
-	result := config.DB.Create(&input)
+func CreateAdmin(admin models.Admin) (models.Admin, error) {
 
-	return input, result.Error
+	query := `
+	INSERT INTO admins(email,password)
+	VALUES($1,$2)
+	RETURNING id
+	`
+
+	rows, err := dbops.PostgresRepo.Insert(
+		query,
+		admin.Email,
+		admin.Password,
+	)
+
+	if err != nil {
+		return models.Admin{}, err
+	}
+
+	defer rows.Close()
+
+	if rows.Next() {
+
+		err := rows.Scan(
+			&admin.ID,
+		)
+
+		if err != nil {
+			return models.Admin{}, err
+		}
+	}
+
+	return admin, nil
 }
 
 func FindAdminByEmail(email string) (models.Admin, error) {
 
-	var admin models.Admin
-	err := config.DB.Where(
-		"email = ?",
+	query := `
+	SELECT id, email, password
+	FROM admins
+	WHERE email = $1
+	`
+
+	rows, err := dbops.PostgresRepo.Fetch(
+		query,
 		email,
-	).First(&admin).Error	
-	return admin, err
+	)
+
+	if err != nil {
+		return models.Admin{}, err
+	}
+
+	defer rows.Close()
+
+	var admin models.Admin
+
+	if rows.Next() {
+
+		err := rows.Scan(
+			&admin.ID,
+			&admin.Email,
+			&admin.Password,
+		)
+
+		if err != nil {
+			return models.Admin{}, err
+		}
+
+		return admin, nil
+	}
+
+	return models.Admin{}, errors.New("admin not found")
 }
 
 func DeleteTokenFromRedis(email string) error {
