@@ -35,4 +35,8 @@ func SetupRoutes(router *gin.Engine) {
 
 	}
 
+	router.GET("/api/callApis", controller.FetchApis)
+
+	//GET http://localhost:8080/api/callApis
+
 }

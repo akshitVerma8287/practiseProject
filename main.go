@@ -122,7 +122,7 @@ func main() {
 	controller.InitStudentProvider(studentProvider)
 
 	// Chron Jobs
-	cronjobs.StartCronJobs()
+	cronjobs.StartApiJob()
 
 	routes.SetupRoutes(router)
 

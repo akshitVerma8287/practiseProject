@@ -1,7 +1,9 @@
 package cronjobs
 
 import (
+	"fmt"
 	"project/services"
+	"time"
 
 	"github.com/robfig/cron/v3"
 )
@@ -16,4 +18,26 @@ func StartCronJobs() {
 	})
 
 	c.Start()
+}
+
+func StartApiJob() {
+
+	ticker := time.NewTicker(10 * time.Second)
+
+	go func() {
+
+		for {
+
+			select {
+
+			case <-ticker.C:
+
+				fmt.Println("Running API Job...")
+
+				services.CallMultipleApis()
+
+			}
+		}
+
+	}()
 }
