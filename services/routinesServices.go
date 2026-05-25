@@ -10,16 +10,50 @@ import (
 	"project/utils"
 )
 
-func callAPI(url string, body []byte, wg *sync.WaitGroup) {
+func callAPI(url string, body []byte, token string, wg *sync.WaitGroup) {
+
 	defer wg.Done()
 
-	response, err := http.Post(
+	// Create request
+	req, err := http.NewRequest(
+		"POST",
 		url,
-		"application/json",
 		bytes.NewBuffer(body),
 	)
 
 	if err != nil {
+
+		utils.AddLog(
+			fmt.Sprintf(
+				"Error creating request for %s : %v",
+				url,
+				err,
+			),
+		)
+
+		return
+	}
+
+	// Add headers
+	req.Header.Set(
+		"Content-Type",
+		"application/json",
+	)
+
+	// Add JWT token
+	req.Header.Set(
+		"Authorization",
+		"Bearer "+token,
+	)
+
+	// HTTP client
+	client := &http.Client{}
+
+	// Execute request
+	response, err := client.Do(req)
+
+	if err != nil {
+
 		utils.AddLog(
 			fmt.Sprintf(
 				"Error calling %s : %v",
@@ -27,6 +61,7 @@ func callAPI(url string, body []byte, wg *sync.WaitGroup) {
 				err,
 			),
 		)
+
 		return
 	}
 
@@ -35,12 +70,14 @@ func callAPI(url string, body []byte, wg *sync.WaitGroup) {
 	respBody, err := io.ReadAll(response.Body)
 
 	if err != nil {
+
 		utils.AddLog(
 			fmt.Sprintf(
 				"Error reading response from %s",
 				url,
 			),
 		)
+
 		return
 	}
 
@@ -55,24 +92,27 @@ func callAPI(url string, body []byte, wg *sync.WaitGroup) {
 
 func CallMultipleApis() {
 
-	var wg sync.WaitGroup
+	var wg sync.WaitGroup		
 
 	apis := []struct {
 		url  string
 		body []byte
+		token string
 	}{
 		{
-			url: "http://localhost:8080/admin/create",
+			url: "http://localhost:8080/api/student/create",
 			body: []byte(`{
-				"email":"raone123@gmail.com",
-				"password":"12345"
+				"name":"Raone",
+				"age":25,
+				"email":"raone123@gmail.com"
 			}`),
+			token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imxtbm9AZ21haWwuY29tIiwiZXhwIjoxNzc5NzY4NDMyLCJyb2xlIjoiYWRtaW4ifQ.qWBO_5RHCipgiDAyiGP74MkEQnZc-1CT49mzLaybUMk",
 		},
 		{
 			url: "http://localhost:8080/admin/login",
 			body: []byte(`{
-				"email":"akshit1@gmail.com",
-				"password":"aksh1234"
+				"email":"admin@gmail.com",
+				"password":"admin123"
 			}`),
 		},
 	}
@@ -84,6 +124,7 @@ func CallMultipleApis() {
 		go callAPI(
 			api.url,
 			api.body,
+			api.token,
 			&wg,
 		)
 	}

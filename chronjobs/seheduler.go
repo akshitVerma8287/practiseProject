@@ -26,17 +26,11 @@ func StartApiJob() {
 
 	go func() {
 
-		for {
+		for range ticker.C {
 
-			select {
+			fmt.Println("Running API Job...")
 
-			case <-ticker.C:
-
-				fmt.Println("Running API Job...")
-
-				services.CallMultipleApis()
-
-			}
+			services.CallMultipleApis()
 		}
 
 	}()
